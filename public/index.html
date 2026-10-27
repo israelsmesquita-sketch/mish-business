@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mish Business 1.0</title>
+  <title>Mish Business</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <section id="login" class="login" hidden>
     <form id="login-form" class="login-card">
-      <div class="brand brand-login">Mish <span>Business</span><small>BPO financeiro · v1.0</small></div>
+      <div class="brand brand-login">Mish <span>Business</span><small>Gestão de salões · Mish Barber · Espaço GP</small></div>
       <label>E-mail<input name="email" type="email" autocomplete="username" required /></label>
       <label>Senha<input name="senha" type="password" autocomplete="current-password" required /></label>
       <p class="form-error" id="login-error"></p>
@@ -19,21 +19,22 @@
 
   <div id="shell" class="shell" hidden>
     <aside class="sidebar">
-      <div class="brand">Mish <span>Business</span><small>BPO financeiro · v1.0</small></div>
+      <div class="brand">Mish <span>Business</span><small>Gestão de salões</small></div>
       <nav id="menu"></nav>
+      <div class="sidebar-user">
+        <span id="user-name"></span>
+        <button class="link-btn" id="btn-senha">Alterar senha</button>
+        <button class="link-btn" id="btn-sair">Sair</button>
+      </div>
     </aside>
 
     <main>
       <header class="topbar">
-        <h1 id="page-title"></h1>
-        <div class="topbar-right">
-          <select id="empresa-select" aria-label="Empresa"></select>
-          <div class="user-menu">
-            <span id="user-name"></span>
-            <button class="btn ghost small" id="btn-senha">Alterar senha</button>
-            <button class="btn ghost small" id="btn-sair">Sair</button>
-          </div>
+        <div class="topbar-title">
+          <h1 id="page-title"></h1>
+          <select id="empresa-select" aria-label="Salão"></select>
         </div>
+        <div id="periodo-global"></div>
       </header>
       <section id="view"></section>
     </main>

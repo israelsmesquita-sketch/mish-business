@@ -7,6 +7,9 @@ const { authRouter } = require('./routes/auth');
 const { usuariosRouter } = require('./routes/usuarios');
 const { empresasRouter } = require('./routes/empresas');
 const { biCarteiraRouter } = require('./routes/bi');
+const { painelRouter } = require('./routes/painel');
+const { pilaresRouter } = require('./routes/pilares');
+const { trinksRouter } = require('./routes/trinks');
 
 function createApp(db = openDatabase()) {
   const app = express();
@@ -38,11 +41,14 @@ function createApp(db = openDatabase()) {
 
   app.use(carregarUsuario(db));
 
-  app.get('/api/health', (req, res) => res.json({ status: 'ok', app: 'Mish Business', versao: '1.0.0' }));
+  app.get('/api/health', (req, res) => res.json({ status: 'ok', app: 'Mish Business', versao: '1.1.0' }));
   app.use('/api/auth', authRouter(db));
   app.use('/api/usuarios', exigirLogin, usuariosRouter(db));
   app.use('/api/empresas', exigirLogin, empresasRouter(db));
   app.use('/api/bi', exigirLogin, biCarteiraRouter(db));
+  app.use('/api/painel', exigirLogin, painelRouter(db));
+  app.use('/api/pilares', exigirLogin, pilaresRouter(db));
+  app.use('/api/trinks', exigirLogin, trinksRouter(db));
 
   app.use('/api', (req, res) => res.status(404).json({ erro: 'Rota não encontrada' }));
   app.use(express.static(path.join(__dirname, '..', 'public')));

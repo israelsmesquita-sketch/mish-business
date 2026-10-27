@@ -92,13 +92,101 @@ const SCHEMA = `
     UNIQUE (conta_id, fitid)
   );
   CREATE INDEX IF NOT EXISTS idx_extrato_conta ON extrato (conta_id, data);
+
+  -- Pessoas: profissionais do salão. apelido_trinks é o nome como aparece nos relatórios do Trinks.
+  CREATE TABLE IF NOT EXISTS colaboradores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    empresa_id INTEGER NOT NULL REFERENCES empresas(id) ON DELETE CASCADE,
+    nome TEXT NOT NULL,
+    funcao TEXT,
+    apelido_trinks TEXT,
+    meta_mensal REAL NOT NULL DEFAULT 0,
+    ativo INTEGER NOT NULL DEFAULT 1,
+    criado_em TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (empresa_id, nome)
+  );
+
+  -- Serviços e produtos vendidos, um item por linha (origem: robô Trinks, arquivo importado ou manual).
+  -- chave evita duplicar o mesmo item quando o relatório é importado de novo.
+  CREATE TABLE IF NOT EXISTS atendimentos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    empresa_id INTEGER NOT NULL REFERENCES empresas(id) ON DELETE CASCADE,
+    colaborador_id INTEGER REFERENCES colaboradores(id) ON DELETE SET NULL,
+    data TEXT NOT NULL,
+    cliente TEXT,
+    item TEXT NOT NULL,
+    tipo TEXT NOT NULL CHECK (tipo IN ('servico', 'produto')),
+    valor REAL NOT NULL CHECK (valor >= 0),
+    chave TEXT NOT NULL,
+    origem TEXT NOT NULL DEFAULT 'manual',
+    importado_em TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (empresa_id, chave)
+  );
+  CREATE INDEX IF NOT EXISTS idx_atend_empresa ON atendimentos (empresa_id, data);
+  CREATE INDEX IF NOT EXISTS idx_atend_colab ON atendimentos (colaborador_id, data);
+
+  -- Pilares de avaliação (comuns a todos os salões) e as notas mensais de cada profissional (0 a 10).
+  CREATE TABLE IF NOT EXISTS pilares (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL UNIQUE,
+    descricao TEXT,
+    ordem INTEGER NOT NULL DEFAULT 0
+  );
+
+  CREATE TABLE IF NOT EXISTS avaliacoes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    colaborador_id INTEGER NOT NULL REFERENCES colaboradores(id) ON DELETE CASCADE,
+    pilar_id INTEGER NOT NULL REFERENCES pilares(id) ON DELETE CASCADE,
+    mes TEXT NOT NULL,
+    nota REAL NOT NULL CHECK (nota >= 0 AND nota <= 10),
+    UNIQUE (colaborador_id, pilar_id, mes)
+  );
+
+  -- Plano de ação: cada ação nasce de um indicador (do salão ou de um profissional).
+  CREATE TABLE IF NOT EXISTS acoes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    empresa_id INTEGER NOT NULL REFERENCES empresas(id) ON DELETE CASCADE,
+    colaborador_id INTEGER REFERENCES colaboradores(id) ON DELETE CASCADE,
+    indicador TEXT,
+    descricao TEXT NOT NULL,
+    responsavel TEXT,
+    prazo TEXT,
+    status TEXT NOT NULL DEFAULT 'aberta' CHECK (status IN ('aberta', 'concluida')),
+    criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- Histórico das coletas do Trinks (robô diário ou arquivo enviado).
+  CREATE TABLE IF NOT EXISTS trinks_sync (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    empresa_id INTEGER REFERENCES empresas(id) ON DELETE CASCADE,
+    origem TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('ok', 'erro')),
+    inicio TEXT,
+    fim TEXT,
+    lidos INTEGER NOT NULL DEFAULT 0,
+    novos INTEGER NOT NULL DEFAULT 0,
+    mensagem TEXT,
+    criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `;
+
+const PILARES_PADRAO = [
+  ['Técnica', 'Qualidade e acabamento do serviço'],
+  ['Atendimento', 'Experiência do cliente, simpatia e escuta'],
+  ['Pontualidade', 'Cumprimento de horários e assiduidade'],
+  ['Vendas', 'Indicação de produtos e serviços complementares'],
+  ['Postura e equipe', 'Organização, colaboração e cuidado com o espaço'],
+];
 
 function openDatabase(file = process.env.MISH_DB || path.join(__dirname, '..', 'data', 'mish.db')) {
   if (file !== ':memory:') fs.mkdirSync(path.dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
   db.exec('PRAGMA foreign_keys = ON;');
   db.exec(SCHEMA);
+  if (db.prepare('SELECT COUNT(*) AS n FROM pilares').get().n === 0) {
+    const ins = db.prepare('INSERT INTO pilares (nome, descricao, ordem) VALUES (?, ?, ?)');
+    PILARES_PADRAO.forEach(([nome, descricao], i) => ins.run(nome, descricao, i + 1));
+  }
   return db;
 }
 
@@ -122,6 +210,7 @@ const PLANO_DE_CONTAS_PADRAO = [
   ['Outras receitas', 'receita', 'outros'],
   ['Impostos sobre vendas', 'despesa', 'deducoes'],
   ['Custo de mercadorias / insumos', 'despesa', 'custos'],
+  ['Comissões de profissionais', 'despesa', 'custos'],
   ['Folha de pagamento', 'despesa', 'despesas_operacionais'],
   ['Pró-labore', 'despesa', 'despesas_operacionais'],
   ['Aluguel e condomínio', 'despesa', 'despesas_operacionais'],

@@ -1,0 +1,42 @@
+{
+  "_leia": "Copie para config/trinks.json e ajuste. Senhas NUNCA aqui: use env:VARIAVEL e defina a variável no servidor.",
+  "urlLogin": "https://www.trinks.com/Login",
+  "urlSair": "https://www.trinks.com/Logout",
+  "perfilNavegador": "data/trinks/navegador",
+  "diasParaTras": 3,
+  "formatoData": "dd/mm/aaaa",
+  "seletores": {
+    "usuario": "input[type=email], input[name*=mail i], input[name*=login i], input[name*=usuario i]",
+    "senha": "input[type=password]",
+    "entrar": "button[type=submit], input[type=submit], button:has-text('Entrar')",
+    "exportar": "a:has-text('Exportar'), button:has-text('Exportar'), a:has-text('Excel'), button:has-text('Excel')"
+  },
+  "saloes": [
+    {
+      "empresa": "Mish Barber",
+      "usuario": "env:TRINKS_MISH_USUARIO",
+      "senha": "env:TRINKS_MISH_SENHA",
+      "urlRelatorio": "COLE_AQUI_A_URL_DO_RELATORIO_DE_ATENDIMENTOS_POR_PROFISSIONAL",
+      "passos": [
+        { "acao": "preencher", "seletor": "input[name*=inicio i], input[name*=De i]", "valor": "{inicio}" },
+        { "acao": "preencher", "seletor": "input[name*=fim i], input[name*=Ate i]", "valor": "{fim}" },
+        { "acao": "clicar", "seletor": "button:has-text('Filtrar'), button:has-text('Buscar'), button:has-text('Gerar')" },
+        { "acao": "esperar", "valor": "3000" }
+      ],
+      "sairAoFinal": true
+    },
+    {
+      "empresa": "Espaço GP",
+      "usuario": "env:TRINKS_GP_USUARIO",
+      "senha": "env:TRINKS_GP_SENHA",
+      "urlRelatorio": "COLE_AQUI_A_URL_DO_RELATORIO_DE_ATENDIMENTOS_POR_PROFISSIONAL",
+      "passos": [
+        { "acao": "preencher", "seletor": "input[name*=inicio i], input[name*=De i]", "valor": "{inicio}" },
+        { "acao": "preencher", "seletor": "input[name*=fim i], input[name*=Ate i]", "valor": "{fim}" },
+        { "acao": "clicar", "seletor": "button:has-text('Filtrar'), button:has-text('Buscar'), button:has-text('Gerar')" },
+        { "acao": "esperar", "valor": "3000" }
+      ],
+      "sairAoFinal": true
+    }
+  ]
+}

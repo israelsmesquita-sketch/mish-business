@@ -1,7 +1,7 @@
 {
   "name": "mish-business",
-  "version": "1.0.0",
-  "description": "Mish Business 1.0 — plataforma de BPO financeiro: multiempresa, login com perfis, contas a pagar e receber, conciliação bancária, B.I. e relatórios.",
+  "version": "1.1.0",
+  "description": "Mish Business — painel de gestão para salões (Mish Barber e Espaço GP): financeiro, pessoas, pilares, plano de ação e coleta diária do Trinks.",
   "main": "src/server.js",
   "type": "commonjs",
   "engines": {
@@ -11,7 +11,9 @@
     "start": "node --disable-warning=ExperimentalWarning src/server.js",
     "dev": "node --disable-warning=ExperimentalWarning --watch src/server.js",
     "seed": "node --disable-warning=ExperimentalWarning src/seed.js",
-    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js"
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js",
+    "usuarios": "node --disable-warning=ExperimentalWarning src/criar-usuarios.js",
+    "trinks": "node --disable-warning=ExperimentalWarning src/trinks-sync.js"
   },
   "license": "MIT",
   "dependencies": {

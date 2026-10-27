@@ -1,13 +1,20 @@
 // Estado global da sessão: usuário logado, empresas acessíveis e empresa selecionada.
 
+const pad = (n) => String(n).padStart(2, '0');
+const hojeD = new Date();
+const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
 export const estado = {
   user: null,
   empresas: [],
   empresaId: null,
+  // Período global (barra do topo), usado por todas as telas. Padrão: mês atual.
+  periodo: { inicio: iso(new Date(hojeD.getFullYear(), hojeD.getMonth(), 1)), fim: iso(new Date(hojeD.getFullYear(), hojeD.getMonth() + 1, 0)) },
 };
 
 export const isEquipe = () => estado.user && estado.user.papel !== 'cliente';
 export const isAdmin = () => estado.user && estado.user.papel === 'admin';
+export const nomeEmpresa = (e) => (e ? e.nome_fantasia || e.razao_social : '');
 export const empresaAtual = () => estado.empresas.find((e) => e.id === estado.empresaId);
 export const empresaUrl = (path = '') => `/empresas/${estado.empresaId}${path}`;
 

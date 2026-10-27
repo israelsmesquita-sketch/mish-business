@@ -2,6 +2,7 @@ const crypto = require('node:crypto');
 const { createApp } = require('./app');
 const { openDatabase } = require('./db');
 const { hashSenha } = require('./lib/auth');
+const { agendarTrinks } = require('./lib/trinks-robo');
 
 const PORT = Number(process.env.PORT) || 3000;
 const db = openDatabase();
@@ -17,5 +18,6 @@ if (db.prepare('SELECT COUNT(*) AS n FROM usuarios').get().n === 0) {
 }
 
 createApp(db).listen(PORT, () => {
-  console.log(`Mish Business 1.0 rodando em http://localhost:${PORT}`);
+  console.log(`Mish Business rodando em http://localhost:${PORT}`);
 });
+agendarTrinks(db);

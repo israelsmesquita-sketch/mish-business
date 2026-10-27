@@ -55,7 +55,7 @@ export async function renderConciliacao(view) {
             </div>`
           )
           .join('')
-      : `<div class="panel empty">Cadastre uma conta bancária em <a href="#/cadastros">Cadastros</a> para importar extratos.</div>`;
+      : `<div class="panel empty">Cadastre uma conta bancária em <a href="#/ajustes?aba=cadastros">Ajustes › Plano de contas e bancos</a> para importar extratos.</div>`;
   }
 
   async function load() {

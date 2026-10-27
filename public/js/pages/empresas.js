@@ -3,7 +3,7 @@ import { isAdmin, recarregarEmpresas, selecionarEmpresa } from '../estado.js';
 
 export async function renderEmpresas(view) {
   view.innerHTML = `
-    <div class="toolbar"><span class="hint">Cada nova empresa recebe automaticamente um plano de contas padrão.</span><button class="btn primary" id="nova">Nova empresa</button></div>
+    <div class="toolbar"><span class="hint">Cada novo salão recebe automaticamente um plano de contas padrão.</span><button class="btn primary" id="nova">Novo salão</button></div>
     <div id="lista"></div>`;
 
   async function load() {
@@ -29,12 +29,12 @@ export async function renderEmpresas(view) {
     <div class="row">${field('Responsável', 'responsavel', e.responsavel)}${select('Situação', 'ativo', [['1', 'Ativa'], ['0', 'Inativa']], e.ativo === 0 ? '0' : '1')}</div>`;
 
   function editar(e) {
-    openModal(e ? 'Editar empresa' : 'Nova empresa cliente', form(e || {}), async (f) => {
+    openModal(e ? 'Editar salão' : 'Novo salão', form(e || {}), async (f) => {
       const body = formData(f);
       if (e) await api(`/empresas/${e.id}`, { method: 'PUT', body });
       else selecionarEmpresa((await api('/empresas', { method: 'POST', body })).id);
       await recarregarEmpresas(api);
-      toast('Empresa salva');
+      toast('Salão salvo');
       await load();
     });
   }
@@ -46,10 +46,10 @@ export async function renderEmpresas(view) {
     tentar(async () => {
       if (btn.dataset.action === 'abrir') {
         selecionarEmpresa(id);
-        location.hash = '#/bi';
+        location.hash = '#/financeiro';
       }
       if (btn.dataset.action === 'editar') editar(await api(`/empresas/${id}`));
-      if (btn.dataset.action === 'excluir' && confirmar('Excluir a empresa e TODOS os seus dados financeiros? Esta ação não pode ser desfeita.')) {
+      if (btn.dataset.action === 'excluir' && confirmar('Excluir o salão e TODOS os seus dados (financeiro, equipe, atendimentos)? Esta ação não pode ser desfeita.')) {
         await api(`/empresas/${id}`, { method: 'DELETE' });
         await recarregarEmpresas(api);
         toast('Empresa excluída');

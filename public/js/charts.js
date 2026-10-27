@@ -69,16 +69,16 @@ export function columnChart(data, { labelKey, series, line, height = 260 }) {
   return `<div class="legend">${legend}</div><svg class="chart" viewBox="0 0 ${width} ${height}" role="img" preserveAspectRatio="xMidYMid meet">${svg}</svg>`;
 }
 
-/** Horizontal bars ranked by value (categorias, aging, contrapartes). */
-export function barList(items, { labelKey, valueKey, cls = 'bar-a', empty = 'Sem dados no período.', showPct = true }) {
-  if (!items.length) return `<p class="empty">${esc(empty)}</p>`;
-  const max = Math.max(...items.map((i) => i[valueKey]), 1);
+/** Horizontal bars ranked by value (categorias, contrapartes). Items with `href` link to the detail. */
+export function barList(items, { labelKey, valueKey, cls = 'bar-a', empty = 'Sem dados no período.', showPct = true, format = money, max: maxFixo }) {
+  if (!items.length) return empty ? `<p class="empty">${esc(empty)}</p>` : '';
+  const max = maxFixo || Math.max(...items.map((i) => i[valueKey]), 1);
   const total = items.reduce((s, i) => s + i[valueKey], 0) || 1;
   return `<div class="barlist">${items
     .map((it) => {
       const w = Math.max((it[valueKey] / max) * 100, it[valueKey] ? 1 : 0);
       return `<div class="barlist-row">
-        <div class="barlist-label"><span>${esc(it[labelKey])}</span><span class="barlist-value">${money(it[valueKey])}${showPct ? ` <small>${((it[valueKey] / total) * 100).toFixed(0)}%</small>` : ''}</span></div>
+        <div class="barlist-label"><span>${it.href ? `<a href="${esc(it.href)}">${esc(it[labelKey])}</a>` : esc(it[labelKey])}</span><span class="barlist-value">${format(it[valueKey])}${showPct ? ` <small>${((it[valueKey] / total) * 100).toFixed(0)}%</small>` : ''}</span></div>
         <svg class="barlist-track" viewBox="0 0 100 6" preserveAspectRatio="none"><rect class="track" width="100" height="6" rx="3" /><rect class="${cls}" width="${w}" height="6" rx="3" /></svg>
       </div>`;
     })

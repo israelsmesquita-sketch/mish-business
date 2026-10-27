@@ -7,6 +7,11 @@ const { lancamentosRouter } = require('./lancamentos');
 const { conciliacaoRouter } = require('./conciliacao');
 const { biEmpresaRouter } = require('./bi');
 const { relatoriosRouter } = require('./relatorios');
+const { pessoasRouter } = require('./pessoas');
+const { trinksEmpresaRouter } = require('./trinks');
+
+// Donos (perfil cliente) consultam tudo e também avaliam a equipe e cuidam do plano de ação.
+const ESCRITA_DONO = /^\/(pessoas|acoes)(\/|$)/;
 
 const FIELDS = {
   razao_social: { required: true, label: 'razão social' },
@@ -47,7 +52,7 @@ function empresasRouter(db) {
     const empresa = find(req.params.empresaId);
     if (!isEquipe(req.user)) {
       if (req.user.empresa_id !== empresa.id) throw notFound('Empresa não encontrada');
-      if (req.method !== 'GET') throw forbidden('Seu perfil permite apenas consulta');
+      if (req.method !== 'GET' && !ESCRITA_DONO.test(req.path)) throw forbidden('Seu perfil permite apenas consulta');
     }
     req.empresa = empresa;
     next();
@@ -99,6 +104,40 @@ function empresasRouter(db) {
     })
   );
 
+  router.use(
+    '/:empresaId/colaboradores',
+    crudEmpresa(db, {
+      table: 'colaboradores',
+      fields: {
+        nome: { required: true },
+        funcao: { label: 'função' },
+        apelido_trinks: { label: 'nome no Trinks' },
+        meta_mensal: { type: 'number', label: 'meta mensal' },
+        ativo: { type: 'bool' },
+      },
+      search: ['nome'],
+      orderBy: 'ativo DESC, nome COLLATE NOCASE',
+    })
+  );
+
+  router.use(
+    '/:empresaId/acoes',
+    crudEmpresa(db, {
+      table: 'acoes',
+      fields: {
+        colaborador_id: { type: 'ref', ref: 'colaboradores', label: 'profissional' },
+        indicador: {},
+        descricao: { required: true, label: 'ação' },
+        responsavel: { label: 'responsável' },
+        prazo: { type: 'date' },
+        status: { type: 'enum', values: ['aberta', 'concluida'] },
+      },
+      orderBy: "status = 'concluida', COALESCE(prazo, '9999'), id DESC",
+    })
+  );
+
+  router.use('/:empresaId/pessoas', pessoasRouter(db));
+  router.use('/:empresaId/trinks', trinksEmpresaRouter(db));
   router.use('/:empresaId/lancamentos', lancamentosRouter(db));
   router.use('/:empresaId/conciliacao', conciliacaoRouter(db));
   router.use('/:empresaId/bi', biEmpresaRouter(db));

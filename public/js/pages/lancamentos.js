@@ -1,29 +1,30 @@
-import { $, api, esc, money, dateBR, table, qs, badge, field, select, formData, openModal, toast, tentar, confirmar, hoje, periodoHtml, bindPeriodo } from '../ui.js';
-import { empresaUrl, isEquipe, cadastros } from '../estado.js';
+import { $, api, esc, money, dateBR, table, qs, badge, field, select, formData, openModal, toast, tentar, confirmar, hoje } from '../ui.js';
+import { empresaUrl, isEquipe, cadastros, estado } from '../estado.js';
 
-export async function renderLancamentos(view) {
+/** Lista de receitas ou despesas do período global. `tipo` fixa a aba; `categoria` vem do clique no gráfico. */
+export async function renderLancamentos(view, { tipo = 'despesa', categoria = '' } = {}) {
   const { categorias, contas } = await cadastros(api);
   const editavel = isEquipe();
+  const nomeTipo = tipo === 'receita' ? 'receita' : 'despesa';
 
   view.innerHTML = `
     <div class="toolbar">
       <div class="filters">
-        ${periodoHtml('per-lanc')}
-        <select id="f-tipo" aria-label="Tipo"><option value="">Pagar e receber</option><option value="receita">A receber</option><option value="despesa">A pagar</option></select>
-        <select id="f-status" aria-label="Status"><option value="">Todos os status</option><option value="pendente">Pendentes</option><option value="atrasado">Atrasados</option><option value="aberto">A vencer</option><option value="pago">Pagos</option></select>
-        <select id="f-cat" aria-label="Categoria"><option value="">Todas as categorias</option>${categorias.map((c) => `<option value="${c.id}">${esc(c.nome)}</option>`).join('')}</select>
-        <input type="search" id="f-busca" placeholder="Buscar descrição, cliente, fornecedor, documento..." />
+        <select id="f-status" aria-label="Status"><option value="">Todos os status</option><option value="pendente">${tipo === 'receita' ? 'A receber' : 'A pagar'}</option><option value="atrasado">Vencidas</option><option value="pago">${tipo === 'receita' ? 'Recebidas' : 'Pagas'}</option></select>
+        <select id="f-cat" aria-label="Categoria"><option value="">Todas as categorias</option>${categorias
+          .filter((c) => c.tipo === tipo)
+          .map((c) => `<option value="${c.id}" ${String(c.id) === String(categoria) ? 'selected' : ''}>${esc(c.nome)}</option>`)
+          .join('')}</select>
+        <input type="search" id="f-busca" placeholder="Buscar descrição, ${tipo === 'receita' ? 'cliente' : 'fornecedor'}, documento..." />
       </div>
-      ${editavel ? '<button class="btn primary" id="novo">Novo lançamento</button>' : ''}
+      ${editavel ? `<button class="btn primary" id="novo">Nova ${nomeTipo}</button>` : ''}
     </div>
     <div id="lista"></div>`;
 
-  const getPeriodo = bindPeriodo('per-lanc', () => load());
-
   async function load() {
     const filtros = {
-      ...getPeriodo(),
-      tipo: $('#f-tipo').value,
+      ...estado.periodo,
+      tipo,
       status: $('#f-status').value,
       categoria_id: $('#f-cat').value,
       q: $('#f-busca').value.trim(),
@@ -37,7 +38,7 @@ export async function renderLancamentos(view) {
       [
         { label: 'Vencimento' },
         { label: 'Descrição' },
-        { label: 'Cliente/Fornecedor' },
+        { label: tipo === 'receita' ? 'Cliente' : 'Fornecedor' },
         { label: 'Categoria' },
         { label: 'Status' },
         { label: 'Pagamento' },
@@ -56,9 +57,9 @@ export async function renderLancamentos(view) {
           <td class="actions">${editavel ? acoes(l) : ''}</td>
         </tr>`
       ),
-      'Nenhum lançamento no período.',
-      `<tr><td colspan="6">${itens.length} lançamento(s) · a receber <span class="pos">${money(receber)}</span> · a pagar <span class="neg">${money(pagar)}</span></td>
-       <td class="num"><strong class="${receber - pagar >= 0 ? 'pos' : 'neg'}">${money(receber - pagar)}</strong></td><td></td></tr>`
+      `Nenhuma ${nomeTipo} no período.`,
+      `<tr><td colspan="6">${itens.length} ${nomeTipo}(s) com vencimento no período</td>
+       <td class="num"><strong class="${tipo === 'receita' ? 'pos' : 'neg'}">${money(receber + pagar)}</strong></td><td></td></tr>`
     );
   }
 
@@ -75,12 +76,12 @@ export async function renderLancamentos(view) {
   const optsCategorias = (tipo) => [['', 'Sem categoria'], ...categorias.filter((c) => c.tipo === tipo).map((c) => [c.id, c.nome])];
 
   function formulario(l = {}) {
-    const tipo = l.tipo || 'despesa';
+    const t = l.tipo || tipo;
     return `
-      ${select('Tipo *', 'tipo', [['despesa', 'Conta a pagar (despesa)'], ['receita', 'Conta a receber (receita)']], tipo, l.id ? 'disabled' : '')}
+      ${select('Tipo *', 'tipo', [['despesa', 'Despesa (a pagar)'], ['receita', 'Receita (a receber)']], t, l.id ? 'disabled' : '')}
       ${field('Descrição *', 'descricao', l.descricao, 'required')}
       <div class="row">${field('Cliente / fornecedor', 'contraparte', l.contraparte)}${field('Documento (NF, boleto)', 'documento', l.documento)}</div>
-      <div class="row">${select('Categoria', 'categoria_id', optsCategorias(tipo), l.categoria_id)}${select('Conta bancária', 'conta_id', optsContas, l.conta_id)}</div>
+      <div class="row">${select('Categoria', 'categoria_id', optsCategorias(t), l.categoria_id)}${select('Conta bancária', 'conta_id', optsContas, l.conta_id)}</div>
       <div class="row">${field('Valor (R$) *', 'valor', l.valor ?? '', 'type="number" step="0.01" min="0.01" required')}${field('Vencimento *', 'vencimento', l.vencimento || hoje(), 'type="date" required')}</div>
       <div class="row">${field('Competência', 'competencia', l.competencia || '', 'type="date"')}${field('Data de pagamento', 'pagamento', l.pagamento || '', 'type="date"')}</div>
       ${l.id ? '' : field('Repetir por quantos meses (parcelas/recorrência)', 'repetir', 1, 'type="number" min="1" max="60" step="1"')}
@@ -89,7 +90,7 @@ export async function renderLancamentos(view) {
 
   function editar(l) {
     openModal(
-      l ? 'Editar lançamento' : 'Novo lançamento',
+      l ? `Editar ${l.tipo}` : `Nova ${nomeTipo}`,
       formulario(l || {}),
       async (form) => {
         const d = formData(form);
@@ -150,7 +151,7 @@ export async function renderLancamentos(view) {
   });
 
   if (editavel) $('#novo').addEventListener('click', () => editar(null));
-  for (const id of ['#f-tipo', '#f-status', '#f-cat']) $(id).addEventListener('change', () => tentar(load));
+  for (const id of ['#f-status', '#f-cat']) $(id).addEventListener('change', () => tentar(load));
   let timer;
   $('#f-busca').addEventListener('input', () => {
     clearTimeout(timer);

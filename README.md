@@ -1,48 +1,79 @@
-# Mish Business 1.0 — BPO Financeiro
+# Mish Business — gestão de salões
 
-Plataforma de **BPO financeiro** para escritórios que fazem a gestão financeira terceirizada de várias empresas clientes. Reúne em um só lugar: **login com perfis de acesso, contas a pagar e receber, conciliação bancária (OFX/CSV), B.I. e relatórios gerenciais** (DRE, fluxo de caixa, contas e conciliação).
+Painel de gestão inteligente para os salões **Mish Barber** e **Espaço GP**, com visão de B.I. e BPO: poucos números, todos ligados entre si, e cada alerta vira uma ação.
 
-## Funcionalidades
+## As 4 abas
 
-### Acesso e segurança
-- Login com e-mail e senha, sessão por cookie `HttpOnly` + `SameSite=Lax` (12 h).
-- Senhas com hash **scrypt** e salt; o banco guarda só o hash SHA-256 do token de sessão.
-- Três perfis:
-  | Perfil | O que pode fazer |
-  |---|---|
-  | **Administrador** | Tudo, incluindo gestão de usuários e exclusão de empresas |
-  | **Analista BPO** | Opera todas as empresas da carteira (lançamentos, conciliação, cadastros, relatórios) |
-  | **Cliente** | Acessa **somente a própria empresa**, em modo consulta (B.I., relatórios, lançamentos) |
-- Proteção contra força bruta no login, proteção CSRF (cabeçalho obrigatório) e cabeçalhos de segurança (CSP, `X-Frame-Options` etc.).
-- Troca de senha encerra as outras sessões.
+| Aba | Para que serve |
+|---|---|
+| **Painel** | Os salões lado a lado: faturamento, despesas, resultado, ticket médio e atendimentos, sempre comparados com o período anterior. Alertas que viram ações e ranking dos profissionais. |
+| **Financeiro** | 100% receitas e despesas: visão geral (para onde vai e de onde vem o dinheiro), listas de receitas e despesas e DRE. Clicar numa categoria abre as despesas dela. |
+| **Pessoas** | Faturamento e indicadores de cada profissional (atendimentos, serviços, ticket médio, % de produtos, meta, nota dos pilares). Clicar no **nome** abre o perfil: faturamento mês a mês, serviços realizados, notas dos pilares, alertas e plano de ação. |
+| **Ajustes** | Só a equipe Mish: Trinks (robô e envio manual), profissionais, pilares, salões, usuários, plano de contas e conciliação bancária. |
 
-### Multiempresa (carteira BPO)
-- Cadastro de empresas clientes; cada nova empresa recebe um **plano de contas padrão** já mapeado para a DRE.
-- **Carteira BPO**: visão consolidada de todas as empresas, com receitas, despesas, resultado, valores vencidos, vencimentos dos próximos 7 dias e extrato pendente de conciliação.
+**Painéis expansíveis:** clique em ⤢ para ampliar um painel; os outros encolhem numa faixa com o número principal. Clique de novo (ou Esc) para voltar.
 
-### Contas a pagar e receber
-- Lançamentos com categoria, conta bancária, cliente/fornecedor, documento, competência e vencimento.
-- **Parcelamento/recorrência** (até 60 meses), baixa e estorno de pagamentos.
-- Status automático: em aberto, atrasado ou pago. Filtros por período, tipo, status, categoria e busca.
+**Período único:** o filtro de datas no topo vale para todas as telas.
 
-### Conciliação bancária
-- Importação de extratos **OFX** (padrão dos bancos brasileiros) e **CSV** (data, descrição e valor, ou colunas de crédito e débito; datas DD/MM/AAAA e valores `1.234,56`). Arquivos em UTF-8 ou Windows-1252.
-- Transações duplicadas são ignoradas na reimportação (pelo `FITID` do OFX).
-- **Conciliação automática**: liga cada transação ao lançamento em aberto com mesmo valor e sentido, vencimento em até ±7 dias e mesma conta. Quando há mais de um candidato, a decisão fica com o analista.
-- Conciliação manual com sugestões, **criação de lançamento a partir do extrato** (tarifas, IOF, rendimentos) e desfazer conciliação.
-- Lançamentos conciliados ficam travados (valor, data e conta) até a conciliação ser desfeita.
+## Perfis de acesso
 
-### B.I. (painel financeiro por empresa)
-- Indicadores: receitas, despesas, resultado e margem, saldo bancário, a receber/a pagar, valores vencidos, inadimplência e % do extrato conciliado.
-- Gráfico de **fluxo de caixa dos últimos 12 meses** (realizado e previsto), com linha de resultado.
-- Despesas e receitas por categoria, **aging** de contas a receber e a pagar, maiores clientes e fornecedores, saldo por conta.
+| Perfil | O que pode fazer |
+|---|---|
+| **Administrador** | Tudo, incluindo usuários e exclusão de salões |
+| **Analista BPO** | Opera os dois salões: financeiro, Trinks, equipe e ações |
+| **Dono(a) do salão** | Vê somente o próprio salão; avalia a equipe (pilares) e cuida do plano de ação; o financeiro é só consulta |
 
-### Relatórios
-- **DRE gerencial** com colunas mensais, detalhamento por categoria e análise vertical (AV%), em **regime de caixa ou competência**.
-- **Fluxo de caixa** realizado (mensal ou diário) com saldo acumulado.
-- **Contas a pagar e receber** por vencimento e status.
-- **Conciliação bancária**: saldo do extrato × saldo do sistema por conta, com a lista de pendências.
-- Exportação **CSV pronta para o Excel** (`;` e vírgula decimal) e **impressão/PDF** com layout próprio.
+Para criar os usuários reais (com senhas fortes geradas na hora) e os dois salões:
+
+```bash
+npm run usuarios
+```
+
+As senhas aparecem uma única vez no terminal. Os e-mails ficam em `src/criar-usuarios.js` — troque pelos reais antes de rodar, se quiser.
+
+## Dados do Trinks (robô diário)
+
+O Trinks é a fonte do faturamento: cada serviço/produto vendido, por profissional e cliente. Cada coleta:
+1. entra no Trinks pelo navegador, **um salão depois do outro (Mish Barber → Espaço GP)**;
+2. baixa o relatório de atendimentos dos últimos 3 dias (corrige cancelamentos e ajustes);
+3. grava os atendimentos, cria profissionais novos automaticamente e lança a **receita diária** no financeiro — Pessoas e Financeiro partem do mesmo número.
+
+### Instalar o robô (uma vez, no servidor ou no computador que fica ligado)
+
+```bash
+npm install playwright
+npx playwright install chromium
+cp config/trinks.exemplo.json config/trinks.json
+```
+
+Em `config/trinks.json`, cole em `urlRelatorio` o endereço do relatório de atendimentos por profissional de cada salão (abra o relatório no Trinks e copie a URL da barra do navegador) e ajuste os `passos` (preencher datas, clicar em filtrar). Logins e senhas **nunca** vão no arquivo — use variáveis de ambiente:
+
+```bash
+export TRINKS_MISH_USUARIO="..."  TRINKS_MISH_SENHA="..."
+export TRINKS_GP_USUARIO="..."    TRINKS_GP_SENHA="..."
+export TRINKS_HORARIO="06:30"     # coleta automática todo dia neste horário
+```
+
+- **Mesmo navegador:** `perfilNavegador` guarda o navegador do robô numa pasta; o login do Trinks fica salvo de um dia para o outro.
+- **Usar o seu Chrome já aberto:** abra o Chrome com `--remote-debugging-port=9222` e defina `TRINKS_CDP=http://localhost:9222`.
+- **Ver o robô trabalhando** (para ajustar os passos na primeira vez): `TRINKS_HEADLESS=0 npm run trinks`.
+- **Coletar agora:** botão em *Ajustes › Trinks* ou `npm run trinks`.
+- Se algo falhar, o histórico em *Ajustes › Trinks* mostra o erro e uma foto da tela é salva em `data/trinks/`.
+- **Plano B:** exporte o relatório no Trinks (Excel/CSV) e envie em *Ajustes › Trinks › Enviar relatório*.
+
+Colunas reconhecidas no relatório: Data, Profissional, Cliente, Serviço/Item, Tipo (serviço/produto), Valor e, se houver, ID/Comanda. Formatos: `.xlsx`, `.csv` e "Excel" em HTML.
+
+## Indicadores e alertas
+
+- **Atendimento** = visita do cliente (mesmo cliente no mesmo dia conta uma vez). **Ticket médio** = faturamento ÷ atendimentos.
+- Comparação: mês corrente × mesmos dias do mês anterior; outros períodos × mesmo número de dias antes.
+- **Meta**: meta mensal proporcional ao período, com projeção de fechamento no ritmo atual.
+- **Pilares** (padrão: Técnica, Atendimento, Pontualidade, Vendas, Postura e equipe): nota de 0 a 10 por mês, editáveis em *Ajustes › Pilares*.
+- Alertas automáticos: margem baixa ou negativa, queda de faturamento, despesa que disparou, contas vencidas, Trinks desatualizado; por profissional, projeção abaixo de 80% da meta, queda de faturamento, ticket abaixo da média do salão, pouca venda de produtos e pilar abaixo de 7. Cada alerta tem **Criar ação** com a sugestão preenchida.
+
+### Financeiro e BPO (continua disponível)
+
+Contas a pagar e receber com parcelas, baixa e estorno; DRE gerencial (caixa ou competência) com exportação para Excel e PDF; conciliação bancária OFX/CSV em *Ajustes*. Login com sessão segura, senhas com hash scrypt, proteção CSRF e contra força bruta.
 
 ## Tecnologias
 
@@ -54,8 +85,9 @@ Plataforma de **BPO financeiro** para escritórios que fazem a gestão financeir
 
 ```bash
 npm install
-npm run seed   # opcional: dados de demonstração (2 empresas, 14 meses de lançamentos, extrato a conciliar)
-npm start      # http://localhost:3000
+npm run seed     # opcional: demonstração com Mish Barber e Espaço GP (profissionais e números fictícios)
+npm start        # http://localhost:3000
+npm run usuarios # ambiente real: cria os salões e um usuário por perfil
 ```
 
 **Primeiro acesso:** se o banco não tiver usuários, o servidor cria um administrador e mostra a senha no console. Para definir as credenciais você mesmo, use `MISH_ADMIN_EMAIL` e `MISH_ADMIN_SENHA`.
@@ -66,8 +98,8 @@ npm start      # http://localhost:3000
 |---|---|
 | `admin@mish.local` | Administrador |
 | `analista@mish.local` | Analista BPO |
-| `cliente1@mish.local` | Cliente (Pão Dourado) |
-| `cliente2@mish.local` | Cliente (TechNova) |
+| `dono1@mish.local` | Dono(a) — Mish Barber |
+| `dono2@mish.local` | Dono(a) — Espaço GP |
 
 Para testar a importação de extrato, use os arquivos em [`exemplos/`](exemplos/).
 
@@ -81,6 +113,10 @@ Para testar a importação de extrato, use os arquivos em [`exemplos/`](exemplos
 | `MISH_ADMIN_SENHA` | (gerada) | Senha do administrador criado no primeiro acesso |
 | `NODE_ENV` | — | Em `production`, o cookie de sessão é marcado como `Secure` |
 | `TRUST_PROXY` | — | Configure (ex.: `1`) quando rodar atrás de proxy reverso/HTTPS |
+| `TRINKS_HORARIO` | — | Horário da coleta diária do Trinks (ex.: `06:30`) |
+| `TRINKS_CONFIG` | `config/trinks.json` | Arquivo de configuração do robô |
+| `TRINKS_HEADLESS` | — | `0` para ver o navegador do robô |
+| `TRINKS_CDP` | — | Usar um Chrome já aberto (ex.: `http://localhost:9222`) |
 
 ## Testes
 
@@ -88,7 +124,7 @@ Para testar a importação de extrato, use os arquivos em [`exemplos/`](exemplos
 npm test
 ```
 
-Cobrem autenticação e perfis, CSRF, bloqueio de força bruta, isolamento entre empresas, lançamentos e parcelas, importação OFX/CSV, conciliação automática e manual, DRE, B.I., fluxo de caixa e exportação CSV.
+Cobrem leitura dos relatórios do Trinks (CSV, XLSX, HTML), importação sem duplicar, receita diária, indicadores de pessoas, pilares, ações, permissões do dono, autenticação e perfis, CSRF, bloqueio de força bruta, isolamento entre empresas, lançamentos e parcelas, importação OFX/CSV, conciliação automática e manual, DRE, B.I., fluxo de caixa e exportação CSV.
 
 ## API (resumo)
 
@@ -98,6 +134,12 @@ Todas as rotas exigem login, exceto `/api/health` e `/api/auth/login`. Requisiç
 |---|---|
 | `POST /api/auth/login` · `POST /api/auth/logout` · `GET /api/auth/me` · `POST /api/auth/senha` | Sessão |
 | `/api/usuarios` | Usuários (admin) |
+| `GET /api/painel` | Painel de gestão: salões, alertas, ranking e série de 12 meses |
+| `/api/pilares` | Pilares de avaliação |
+| `GET /api/trinks/status` · `POST /api/trinks/sincronizar` | Robô do Trinks |
+| `/api/empresas/:id/pessoas[/:cid]` (+ `PUT /:cid/avaliacao`) | Indicadores da equipe e perfil do profissional |
+| `/api/empresas/:id/colaboradores` · `/acoes` | Profissionais e plano de ação |
+| `/api/empresas/:id/trinks` (+ `POST /importar`) | Histórico e envio manual do relatório do Trinks |
 | `GET /api/bi/carteira` | Visão consolidada da carteira BPO |
 | `/api/empresas[/:id]` | Empresas clientes |
 | `/api/empresas/:id/contas` · `/categorias` | Contas bancárias e plano de contas |
@@ -119,12 +161,17 @@ src/
   lib/auth.js            # senhas, sessões, perfis e limitador de login
   lib/extrato.js         # parsers de extrato OFX e CSV
   lib/datas.js           # utilitários de datas
-  routes/                # auth, usuarios, empresas, lancamentos, conciliacao, bi, relatorios
+  lib/indicadores.js     # faturamento, equipe, comparação de períodos e alertas
+  lib/trinks.js          # leitura do relatório do Trinks e importação
+  lib/trinks-robo.js     # robô de navegador e agendamento diário
+  lib/planilha.js        # leitor de CSV, XLSX e HTML sem dependências
+  routes/                # auth, usuarios, empresas, painel, pessoas, pilares, trinks, lancamentos, conciliacao, bi, relatorios
+config/trinks.exemplo.json # modelo de configuração do robô do Trinks
 public/
   index.html, styles.css
   js/main.js             # login, menu e roteamento
   js/charts.js           # gráficos SVG
-  js/pages/*.js          # telas
+  js/pages/*.js          # telas: painel, financeiro, pessoas, perfil, ajustes (+ telas de cadastro)
 exemplos/                # extratos OFX e CSV de exemplo
 test/                    # testes (node:test)
 ```

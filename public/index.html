@@ -7,21 +7,37 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <aside class="sidebar">
-    <div class="brand">Mish <span>Business</span><small>v1.0</small></div>
-    <nav>
-      <a href="#/dashboard" data-route="dashboard">Painel</a>
-      <a href="#/vendas" data-route="vendas">Vendas</a>
-      <a href="#/produtos" data-route="produtos">Produtos</a>
-      <a href="#/clientes" data-route="clientes">Clientes</a>
-      <a href="#/financeiro" data-route="financeiro">Financeiro</a>
-    </nav>
-  </aside>
+  <section id="login" class="login" hidden>
+    <form id="login-form" class="login-card">
+      <div class="brand brand-login">Mish <span>Business</span><small>BPO financeiro · v1.0</small></div>
+      <label>E-mail<input name="email" type="email" autocomplete="username" required /></label>
+      <label>Senha<input name="senha" type="password" autocomplete="current-password" required /></label>
+      <p class="form-error" id="login-error"></p>
+      <button class="btn primary block" type="submit">Entrar</button>
+    </form>
+  </section>
 
-  <main>
-    <header class="topbar"><h1 id="page-title">Painel</h1></header>
-    <section id="view"></section>
-  </main>
+  <div id="shell" class="shell" hidden>
+    <aside class="sidebar">
+      <div class="brand">Mish <span>Business</span><small>BPO financeiro · v1.0</small></div>
+      <nav id="menu"></nav>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <h1 id="page-title"></h1>
+        <div class="topbar-right">
+          <select id="empresa-select" aria-label="Empresa"></select>
+          <div class="user-menu">
+            <span id="user-name"></span>
+            <button class="btn ghost small" id="btn-senha">Alterar senha</button>
+            <button class="btn ghost small" id="btn-sair">Sair</button>
+          </div>
+        </div>
+      </header>
+      <section id="view"></section>
+    </main>
+  </div>
 
   <dialog id="modal">
     <form method="dialog" id="modal-form">
@@ -36,6 +52,6 @@
   </dialog>
 
   <div id="toast" role="status"></div>
-  <script src="app.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

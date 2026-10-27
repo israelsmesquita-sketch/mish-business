@@ -1,7 +1,7 @@
 {
   "name": "mish-business",
   "version": "1.0.0",
-  "description": "Mish Business 1.0 — sistema de gestão empresarial: clientes, produtos, estoque, vendas e financeiro.",
+  "description": "Mish Business 1.0 — plataforma de BPO financeiro: multiempresa, login com perfis, contas a pagar e receber, conciliação bancária, B.I. e relatórios.",
   "main": "src/server.js",
   "type": "commonjs",
   "engines": {

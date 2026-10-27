@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mish Business 1.0</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section id="login" class="login" hidden>
+    <form id="login-form" class="login-card">
+      <div class="brand brand-login">Mish <span>Business</span><small>BPO financeiro · v1.0</small></div>
+      <label>E-mail<input name="email" type="email" autocomplete="username" required /></label>
+      <label>Senha<input name="senha" type="password" autocomplete="current-password" required /></label>
+      <p class="form-error" id="login-error"></p>
+      <button class="btn primary block" type="submit">Entrar</button>
+    </form>
+  </section>
+
+  <div id="shell" class="shell" hidden>
+    <aside class="sidebar">
+      <div class="brand">Mish <span>Business</span><small>BPO financeiro · v1.0</small></div>
+      <nav id="menu"></nav>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <h1 id="page-title"></h1>
+        <div class="topbar-right">
+          <select id="empresa-select" aria-label="Empresa"></select>
+          <div class="user-menu">
+            <span id="user-name"></span>
+            <button class="btn ghost small" id="btn-senha">Alterar senha</button>
+            <button class="btn ghost small" id="btn-sair">Sair</button>
+          </div>
+        </div>
+      </header>
+      <section id="view"></section>
+    </main>
+  </div>
+
+  <dialog id="modal">
+    <form method="dialog" id="modal-form">
+      <h2 id="modal-title"></h2>
+      <div id="modal-body"></div>
+      <p class="form-error" id="modal-error"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="modal-cancel">Cancelar</button>
+        <button type="submit" class="btn primary" id="modal-submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" role="status"></div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

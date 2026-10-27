@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mish Business 1.0</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">Mish <span>Business</span><small>v1.0</small></div>
+    <nav>
+      <a href="#/dashboard" data-route="dashboard">Painel</a>
+      <a href="#/vendas" data-route="vendas">Vendas</a>
+      <a href="#/produtos" data-route="produtos">Produtos</a>
+      <a href="#/clientes" data-route="clientes">Clientes</a>
+      <a href="#/financeiro" data-route="financeiro">Financeiro</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="topbar"><h1 id="page-title">Painel</h1></header>
+    <section id="view"></section>
+  </main>
+
+  <dialog id="modal">
+    <form method="dialog" id="modal-form">
+      <h2 id="modal-title"></h2>
+      <div id="modal-body"></div>
+      <p class="form-error" id="modal-error"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="modal-cancel">Cancelar</button>
+        <button type="submit" class="btn primary" id="modal-submit">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
